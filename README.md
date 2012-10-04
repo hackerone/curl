@@ -16,6 +16,7 @@
 
 ## Usage
 * to GET a page with default params
+* 
 	$output = Yii::app()->curl->get($url, $params);
 	// output will contain the result of the query
 	// $params - query that'll be appended to the url
