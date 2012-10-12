@@ -73,10 +73,12 @@ class Curl extends CComponent{
 			$options = is_array($this->options)?array_merge($this->_config,$this->options):$this->_config;
 			$this->setOptions($options);
 
-			// close curl on exit
-			Yii::app()->onEndRequest = function(){
-				curl_close($this->_ch);
-			};
+			$ch = $this->_ch;
+	        
+	        // close curl on exit
+	        Yii::app()->onEndRequest = function() use(&$ch){
+	            curl_close($ch);
+	        };
 		}catch(Exception $e){
 			throw new CException('Curl not installed');
 		}

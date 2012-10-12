@@ -1,7 +1,7 @@
 # Curl Wrapper for Yii framework
 
 ## Requirements
-* PHP 5.2+
+* PHP 5.3+
 * Yii 1.1.7 (should work on older versions too)
 * Curl and php-curl installed
 
