@@ -53,6 +53,7 @@ class Curl extends CComponent{
 		isset($parsed['query'])?parse_str($parsed['query'],$parsed['query']):$parsed['query']=array();
 		$params = isset($parsed['query'])?array_merge($parsed['query'], $data):$data;
 		$parsed['query'] = ($params)?'?'.http_build_query($params):'';
+		if(!isset($parsed['path']))$parsed['path']='/';
 		return $parsed['scheme'].'://'.$parsed['host'].$parsed['path'].$parsed['query'];
 	}
 	
@@ -70,7 +71,9 @@ class Curl extends CComponent{
 	public function init(){
 		try{
 			$this->_ch = curl_init();
-			$options = is_array($this->options)?array_merge($this->_config,$this->options):$this->_config;
+			print_r($this->_config);
+			print_r($this->options);
+			$options = is_array($this->options)? ($this->_config + $this->options):$this->_config;
 			$this->setOptions($options);
 
 			$ch = $this->_ch;
