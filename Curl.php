@@ -71,7 +71,7 @@ class Curl extends CComponent{
 	public function init(){
 		try{
 			$this->_ch = curl_init();
-			$options = is_array($this->options)? ($this->_config + $this->options):$this->_config;
+			$options = is_array($this->options)? ($this->options + $this->_config):$this->_config;
 			$this->setOptions($options);
 
 			$ch = $this->_ch;
