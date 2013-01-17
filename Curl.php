@@ -43,8 +43,17 @@ class Curl extends CComponent{
 		return $this->_exec($url);
 	}
 
-	public function put($url, $params = array()){		
-        $this->setOption(CURLOPT_CUSTOMREQUEST, 'PUT');
+	public function put($url, $data, $params = array()){		
+
+		// write to memory/temp
+       	$f = fopen('php://temp', 'rw+');
+       	fwrite($f, $data);
+       	rewind($f);
+
+        $this->setOption(CURLOPT_PUT, true);
+        $this->setOption(CURLOPT_INFILE, $f);
+        $this->setOption(CURLOPT_INFILESIZE, strlen($data));
+        
 		return $this->_exec($this->buildUrl($url, $params));
 	}
 

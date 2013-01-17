@@ -36,6 +36,18 @@
 	// $data - data that will be POSTed
 
 ```
+
+
+* to PUT data 
+
+```php
+	$output = Yii::app()->curl->put($url, $data, $params);
+	// $data - data that will be sent in the body of the PUT
+
+```
+
+
+
 * to set options before GET or POST
 
 ```php
