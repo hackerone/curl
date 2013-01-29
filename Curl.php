@@ -1,6 +1,7 @@
 <?php
 /**
 * Curl wrapper for Yii
+* v - 1.2
 * @author hackerone
 */
 class Curl extends CComponent{
