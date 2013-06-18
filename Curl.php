@@ -82,6 +82,21 @@ class Curl extends CComponent {
         return $this;
     }
 
+    // sets header for current request
+    public function setHeaders($header)
+    {
+        if($this->_isAssoc($header)){
+            $out = array();
+            foreach($header as $k => $v){
+                $out[] = $k .': '.$v;
+            }
+            $header = $out;
+        }
+        $this->setOption(CURLOPT_HTTPHEADER, $header);
+        return $this;
+    }
+
+
     // initialize curl
     public function init() {
         try {
