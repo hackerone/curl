@@ -46,6 +46,13 @@
 
 ```
 
+* to DELETE 
+
+```php
+	$output = Yii::app()->curl->delete($url, $params);
+	// $params - query that'll be appended to the url
+
+```
 
 
 * to set options before GET or POST
