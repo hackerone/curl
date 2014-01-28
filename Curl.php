@@ -86,7 +86,9 @@ class Curl extends CComponent
             $parsed['path']='/';
         }
 
-        return $parsed['scheme'].'://'.$parsed['host'].$parsed['path'].$parsed['query'];
+        $parsed['port'] = isset($parsed['port'])?':'.$parsed['port']:'';
+
+        return $parsed['scheme'].'://'.$parsed['host'].$parsed['port'].$parsed['path'].$parsed['query'];
     }
 
     public function setOptions($options = array())
@@ -144,7 +146,7 @@ class Curl extends CComponent
             $ch = $this->_ch;
             
             // close curl on exit
-            Yii::app()->onEndRequest = function() use(&$ch){
+            @Yii::app()->onEndRequest = function() use(&$ch){
                 curl_close($ch);
             };
         } catch (Exception $e) {
