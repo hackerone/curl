@@ -38,8 +38,6 @@ class Curl extends CComponent
         } else {
             throw new CException(curl_error($this->_ch));
         }
-
-        return false;
     }
 
     public function get($url, $params = array())
