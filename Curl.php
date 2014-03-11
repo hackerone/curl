@@ -29,9 +29,12 @@ class Curl extends CComponent
         $this->setOption(CURLOPT_URL, $url);
         $this->response = curl_exec($this->_ch);
         if (!curl_errno($this->_ch)) {
-            $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
-            $body = substr($this->response, $header_size);
-            return $body;
+            if($this->options[CURLOPT_HEADER] !== false){
+                $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
+                return substr($this->response, $header_size);
+            }
+
+            return $this->response;
         } else {
             throw new CException(curl_error($this->_ch));
         }
