@@ -136,6 +136,11 @@ class Curl extends CComponent
         return curl_getinfo($this->_ch);
     }
 
+    public function getStatus()
+    {
+        return curl_getinfo($this->_ch, CURLINFO_HTTP_CODE);
+    }
+
     // initialize curl
     public function init()
     {
