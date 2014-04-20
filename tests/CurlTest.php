@@ -11,23 +11,23 @@ require_once '../Curl.php';
 class CurlTest extends PHPUnit_Framework_TestCase
 {
 
-  private $_testUrls = [
-    [
+  private $_testUrls = array(
+    array(
       'url' => 'http://www.codevu.com/test',
-      'data' => ["name" => "curl", "type" => "extension"],
+      'data' => array("name" => "curl", "type" => "extension"),
       'output' => 'http://www.codevu.com/test?name=curl&type=extension'
-    ],
-    [
+    ),
+    array(
       'url' => 'https://www.codevu.com/test',
-      'data' => ["name" => "curl", "type" => "extension"],
+      'data' => array("name" => "curl", "type" => "extension"),
       'output' => 'https://www.codevu.com/test?name=curl&type=extension'
-    ],
-    [
+    ),
+    array(
       'url' => 'http://www.codevu.com:8080/test',
-      'data' => ["name" => "curl", "type" => "extension"],
+      'data' => array("name" => "curl", "type" => "extension"),
       'output' => 'http://www.codevu.com:8080/test?name=curl&type=extension'
-    ],
-  ];
+    ),
+  );
   public function testBuildUrl()
   {
     
