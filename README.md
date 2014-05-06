@@ -7,15 +7,15 @@
 
 ## Setup instructions
 
-* Place Curl.php into protected/extensions folder of your project
-* in main.php, add the following to 'components':
+* Place Curl.php or git clone into protected/extensions/curl folder of your project
+* in main.php, or console.php add the following to 'components':
 
 
 ```php
 	'curl' => array(
-			'class' => 'ext.Curl',
-			'options' => array(/.. additional curl options ../)
-		);
+		'class' => 'ext.curl.Curl',
+		'options' => array(/* additional curl options */),
+	),
 ```
 
 

@@ -21,7 +21,7 @@ class Curl extends CComponent
         CURLOPT_CONNECTTIMEOUT => 30,
         CURLOPT_TIMEOUT        => 30,
         CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:5.0) Gecko/20110619 Firefox/5.0'
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     );
 
     private function exec($url)
@@ -29,14 +29,15 @@ class Curl extends CComponent
         $this->setOption(CURLOPT_URL, $url);
         $this->response = curl_exec($this->_ch);
         if (!curl_errno($this->_ch)) {
-            $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
-            $body = substr($this->response, $header_size);
-            return $body;
+            if ($this->options[CURLOPT_HEADER]) {
+                $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
+                return substr($this->response, $header_size);
+            }
+            return $this->response;
         } else {
             throw new CException(curl_error($this->_ch));
+            return false;
         }
-
-        return false;
     }
 
     public function get($url, $params = array())
@@ -133,6 +134,11 @@ class Curl extends CComponent
     public function getInfo()
     {
         return curl_getinfo($this->_ch);
+    }
+
+    public function getStatus()
+    {
+        return curl_getinfo($this->_ch, CURLINFO_HTTP_CODE);
     }
 
     // initialize curl
