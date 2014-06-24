@@ -15,7 +15,7 @@ class Curl extends CComponent
     private $_config = array(
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HEADER         => true,
+        CURLOPT_HEADER         => false,
         CURLOPT_VERBOSE        => true,
         CURLOPT_AUTOREFERER    => true,         
         CURLOPT_CONNECTTIMEOUT => 30,
