@@ -27,6 +27,7 @@ class Curl extends CComponent
     private function exec($url)
     {
         $this->setOption(CURLOPT_URL, $url);
+        Yii::log($url, "warning", "curl log");
         $this->response = curl_exec($this->_ch);
         if (!curl_errno($this->_ch)) {
             if ($this->options[CURLOPT_HEADER]) {
@@ -50,7 +51,7 @@ class Curl extends CComponent
     public function post($url, $data = array())
     {
         $this->setOption(CURLOPT_POST, true);
-        $this->setOption(CURLOPT_POSTFIELDS, $data);
+        $this->setOption(CURLOPT_POSTFIELDS, http_build_query($data));
 
         return $this->exec($url);
     }
