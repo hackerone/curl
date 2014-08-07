@@ -30,7 +30,7 @@ class Curl extends CComponent
         Yii::log($url, "warning", "curl log");
         $this->response = curl_exec($this->_ch);
         if (!curl_errno($this->_ch)) {
-            if ($this->options[CURLOPT_HEADER]) {
+            if (isset($this->options[CURLOPT_HEADER]) && $this->options[CURLOPT_HEADER]) {
                 $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
                 return substr($this->response, $header_size);
             }
