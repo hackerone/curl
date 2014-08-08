@@ -3,13 +3,19 @@
  * Curl wrapper for Yii
  * @author hackerone
  */
-class Curl extends CComponent
+class Curl
 {
     private $_ch;
     private $response;
 
-    // config from config.php
-    public $options;
+    // Default options from config.php
+    public $options = array();
+
+    // request specific options - valid only for single request
+    public $request_options = array();
+
+
+    private $_header, $_headerMap;
 
     // default config
     private $_config = array(
@@ -24,65 +30,59 @@ class Curl extends CComponent
         CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     );
 
-    private function exec($url)
+    public function getOptions()
     {
-        $this->setOption(CURLOPT_URL, $url);
-        Yii::log($url, "warning", "curl log");
-        $this->response = curl_exec($this->_ch);
-        if (!curl_errno($this->_ch)) {
-            if (isset($this->options[CURLOPT_HEADER]) && $this->options[CURLOPT_HEADER]) {
-                $header_size = curl_getinfo($this->_ch, CURLINFO_HEADER_SIZE);
-                return substr($this->response, $header_size);
-            }
-            return $this->response;
-        } else {
-            throw new CException(curl_error($this->_ch));
-            return false;
-        }
+        return $this->request_options + $this->options + $this->_config;
     }
 
-    public function get($url, $params = array())
+    public function setOption($key, $value, $default = false)
     {
-        $this->setOption(CURLOPT_HTTPGET, true);
+        if($default)
+            $this->options[$key] = $value;
+        else
+            $this->request_options[$key] = $value;
 
-        return $this->exec($this->buildUrl($url, $params));
+        return $this;
     }
 
-    public function post($url, $data = array())
-    {
-        $this->setOption(CURLOPT_POST, true);
-        $this->setOption(CURLOPT_POSTFIELDS, http_build_query($data));
+    /**
+     * Clears Options
+     * This will clear only the request specific options. Default options cannot be cleared.
+     */
 
-        return $this->exec($url);
+    public function resetOptions()
+    {
+        $this->request_options = [];
+        return $this;
     }
 
-    public function put($url, $data, $params = array())
+    /**
+     * Resets the Option to Default option
+     */
+    public function resetOption($key)
     {
-        // write to memory/temp
-        $f = fopen('php://temp', 'rw+');
-        fwrite($f, $data);
-        rewind($f);
-
-        $this->setOption(CURLOPT_PUT, true);
-        $this->setOption(CURLOPT_INFILE, $f);
-        $this->setOption(CURLOPT_INFILESIZE, strlen($data));
-        
-        return $this->exec($this->buildUrl($url, $params));
+        if(isset($this->request_options[$key]))
+            unset($this->request_options[$key]);
+        return $this;
     }
 
-    public function delete($url, $params = array())
+    public function setOptions($options, $default = false)
     {
-        $this->setOption(CURLOPT_RETURNTRANSFER, true);
-        $this->setOption(CURLOPT_CUSTOMREQUEST, 'DELETE');
+        if($default)
+            $this->options = $options + $this->request_options;
+        else
+            $this->request_options = $options + $this->request_options;
 
-        return $this->exec($this->buildUrl($url, $params));
+        return $this;
     }
 
-    public function buildUrl($url, $data = array())
+    public function buildUrl($url, $data = [])
     {
         $parsed = parse_url($url);
+        
         isset($parsed['query']) ? parse_str($parsed['query'], $parsed['query']) : $parsed['query'] = array();
-        $params = isset($parsed['query']) ? array_merge($parsed['query'], $data) : $data;
+
+        $params = isset($parsed['query']) ? $data + $parsed['query'] : $data;
         $parsed['query'] = ($params) ? '?' . http_build_query($params) : '';
         if (!isset($parsed['path'])) {
             $parsed['path']='/';
@@ -93,91 +93,111 @@ class Curl extends CComponent
         return $parsed['scheme'].'://'.$parsed['host'].$parsed['port'].$parsed['path'].$parsed['query'];
     }
 
-    public function setOptions($options = array())
+    public function exec($url, $options, $debug = false)
     {
-        curl_setopt_array($this->_ch, $options);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, $options);
+        $output = curl_exec($ch);
 
-        return $this;
-    }
+        if($debug)
+            $this->_info = curl_getinfo($ch);
 
-    public function setOption($option, $value)
-    {
-        curl_setopt($this->_ch, $option, $value);
-
-        return $this;
-    }
-
-    public function setHeaders($header = array())
-    {
-        if ($this->isAssoc($header)) {
-            $out = array();
-            foreach ($header as $k => $v) {
-                $out[] = $k .': '.$v;
-            }
-            $header = $out;
+        if(@$options[CURLOPT_HEADER] == true){
+            list($header, $output) = $this->_processHeader($output, curl_getinfo($ch, CURLINFO_HEADER_SIZE));
+            $this->_header = $header;
         }
+        curl_close($ch);
 
-        $this->setOption(CURLOPT_HTTPHEADER, $header);
+        return $output;
+    }
+
+    public function _processHeader($response, $header_size)
+    {
+        return array(substr($response, 0, $header_size), substr($response, $header_size));
+    }
+
+    public function get($url, $params = [], $debug = false)
+    {
+        $exec_url = $this->buildUrl($url, $params);
+        $options = $this->getOptions();
+        return $this->exec($exec_url,  $options, $debug = false);
+    }
+
+    public function post($url, $data, $params = [], $debug = false)
+    {
+        $url = $this->buildUrl($url, $params);
+
+        $options =  $this->getOptions();
+        $options[CURLOPT_POST] = true;
+        $options[CURLOPT_POSTFIELDS] = $data;
+
+
+        return $this->exec($url, $options, $debug);
+    }
+
+    public function put($url, $data = null, $params = [], $debug = false)
+    {
+        $url = $this->buildUrl($url, $params);
         
-        return $this;
+        $f = fopen('php://temp', 'rw+');
+        fwrite($f, $data);
+        rewind($f);
+
+        $options =  $this->getOptions();
+        $options[CURLOPT_PUT] = true;
+        $options[CURLOPT_INFILE] = $f;
+        $options[CURLOPT_INFILESIZE] = strlen($data);
+
+        return $this->exec($url, $options, $debug);
     }
 
-    private function isAssoc($arr)
+    public function delete($url, $params = [], $debug = false)
     {
-        return array_keys($arr) !== range(0, count($arr) - 1);
+        $url = $this->buildUrl($url, $params);
+        
+        $options = $this->getOptions();
+        $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
+
+        return $this->exec($url, $options, $debug);
     }
 
-    public function getError()
-    {
-        return curl_error($this->_ch);
-    }
-
-    public function getInfo()
-    {
-        return curl_getinfo($this->_ch);
-    }
-
-    public function getStatus()
-    {
-        return curl_getinfo($this->_ch, CURLINFO_HTTP_CODE);
-    }
-
-    // initialize curl
-    public function init()
-    {
-        try {
-            $this->_ch = curl_init();
-            $options = is_array($this->options) ? ($this->options + $this->_config) : $this->_config;
-            $this->setOptions($options);
-
-            $ch = $this->_ch;
-            
-            // close curl on exit
-            @Yii::app()->onEndRequest = function() use(&$ch){
-                curl_close($ch);
-            };
-        } catch (Exception $e) {
-            throw new CException('Curl not installed');
-        }
-    }
-
+    /**
+     * Gets header of the last curl call if header was enabled
+     */
     public function getHeaders()
     {
-        $headers = array();
+        if(!$this->_header)
+            return [];
 
-        $header_text = substr($this->response, 0, strpos($this->response, "\r\n\r\n"));
+        if(!$this->_headerMap){
 
-        foreach (explode("\r\n", $header_text) as $i => $line) {
-            if ($i === 0) {
-                $headers['http_code'] = $line;
-            } else {
-                list ($key, $value) = explode(': ', $line);
+            $headers = explode("\r\n", trim($this->_header));
+            $output = [];
+            $output['http_status'] = array_shift($headers);
 
-                $headers[$key] = $value;
+            foreach($headers as $line){
+                $params = explode(':', $line, 2);
+
+                if(!isset($params[1]))
+                    $output['http_status'] = $params[0];
+                else
+                    $output[trim($params[0])] = trim($params[1]);
             }
+
+            $this->_headerMap = $output;
         }
 
-        return $headers;
+
+        return $this->_headerMap;
     }
+
+    public function getHeader($key)
+    {
+        $headers = array_change_key_case($this->getHeaders(), CASE_LOWER);
+        $key = strtolower($key);
+
+        return @$headers[$key];
+    }
+
 
 }

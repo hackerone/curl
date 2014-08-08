@@ -3,56 +3,148 @@
 /**
 * CurlTest
 */
-
-require_once '../../framework/yii.php'; // framework path
+//require_once './vendor/autoload.php';
 
 require_once '../Curl.php';
 
 class CurlTest extends PHPUnit_Framework_TestCase
 {
 
-  private $_testUrls = array(
-    array(
+  protected $curl;
+
+  protected $mockUrl = 'http://demo1875040.mockable.io/';
+
+  private $_testUrls = [
+    [
       'url' => 'http://www.codevu.com/test',
-      'data' => array("name" => "curl", "type" => "extension"),
+      'data' => ["name" => "curl", "type" => "extension"],
       'output' => 'http://www.codevu.com/test?name=curl&type=extension'
-    ),
-    array(
+    ],
+    [
       'url' => 'https://www.codevu.com/test',
-      'data' => array("name" => "curl", "type" => "extension"),
+      'data' => ["name" => "curl", "type" => "extension"],
       'output' => 'https://www.codevu.com/test?name=curl&type=extension'
-    ),
-    array(
+    ],
+    [
       'url' => 'http://www.codevu.com:8080/test',
-      'data' => array("name" => "curl", "type" => "extension"),
+      'data' => ["name" => "curl", "type" => "extension"],
       'output' => 'http://www.codevu.com:8080/test?name=curl&type=extension'
-    ),
-  );
-  public function testBuildUrl()
+    ],
+  ];
+
+  public function setUp()
+  {
+    $this->curl = new Curl;
+  }
+
+  public function testGetOptions()
+  {
+    $result = $this->curl->getOptions();
+    $this->assertEquals($result, [ CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HEADER         => false,
+        CURLOPT_VERBOSE        => true,
+        CURLOPT_AUTOREFERER    => true,         
+        CURLOPT_CONNECTTIMEOUT => 30,
+        CURLOPT_TIMEOUT        => 30,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)']);
+
+  }
+
+  public function testSetOption()
   {
     
-    $c = new Curl;
+    $result = $this->curl->setOption(CURLOPT_HEADER, true)->getOptions();
 
-    foreach($this->_testUrls as $test){
-      $this->assertEquals(
-        $test['output'],
-        $c->buildUrl($test['url'], $test['data'])
-        );
+    $this->assertEquals($result[CURLOPT_HEADER], true);
+  }
+
+  public function testResetOptions()
+  {
+    $this->curl->setOption(CURLOPT_HEADER, true);
+    $result = $this->curl->resetOptions()->getOptions();
+    $this->assertEquals($result[CURLOPT_HEADER],false);
+
+  }
+
+  public function testResetOption()
+  {
+    $result = $this->curl->setOption(CURLOPT_FAILONERROR, true)->getOptions();
+    $this->assertEquals($result[CURLOPT_FAILONERROR], true);
+
+    $result = $this->curl->resetOption(CURLOPT_FAILONERROR)->getOptions();
+    $this->assertArrayNotHasKey(CURLOPT_FAILONERROR, $result);
+  }
+
+  public function testSetOptions()
+  {
+    $this->curl->setOptions([
+        CURLOPT_CRLF => true,
+        CURLOPT_FRESH_CONNECT => true,
+      ]);
+
+    $options = $this->curl->getOptions();
+
+    $this->assertEquals($options[CURLOPT_CRLF], true);
+    $this->assertEquals($options[CURLOPT_FRESH_CONNECT], true);
+  }
+
+  public function testBuildUrl()
+  {
+    foreach($this->_testUrls as $data){
+      $url = $this->curl->buildUrl($data['url'], $data['data']);
+      $this->assertEquals($url, $data['output']);
     }
   }
 
-  public function testHeader()
+  public function testGet()
   {
-    $c = new Curl();
-    $c->init(); // testing out of app, so have to initialize manually
+    $result = $this->curl->get($this->mockUrl . '/get-test');
+    $this->assertEquals($result, 'get-success');
+  }
 
-    $result = $c->get('http://echo.jsontest.com/key/value/one/two');
+  public function testGetWithHeader()
+  {
+    $result = $this->curl->setOption(CURLOPT_HEADER, true)->get($this->mockUrl . '/get-test');
+    $this->assertEquals($result, 'get-success');
+  }
 
-    $json = json_decode($result);
-    $this->assertEquals($json->key, 'value');
+  public function testPost()
+  {
+    $result = $this->curl->post($this->mockUrl.'/post-test', ['data'=> 'post']);
+    $this->assertEquals($result, 'post-success');
+  }
 
-    $headers = $c->getHeaders();
-    $this->assertContains('HTTP/1.1 200 OK',$headers);
+  public function testPut()
+  {
+    $result = $this->curl->put($this->mockUrl.'/put-test', "put");
+    $this->assertEquals($result, 'put-success');
+  }
+
+
+  public function testDelete()
+  {
+    $result = $this->curl->delete($this->mockUrl.'/delete-test');
+    $this->assertEquals($result, 'delete-success');
+  }
+
+  public function testGetHeaders()
+  {
+    $result = $this->curl->setOption(CURLOPT_HEADER, true)->get($this->mockUrl . '/get-test');
+    $this->assertEquals($result, 'get-success');
+    
+    $headers = $this->curl->getHeaders();
+
+    $this->assertArrayHasKey('Server', $headers);
 
   }
+
+  public function testGetHeader()
+  {
+    $result = $this->curl->setOption(CURLOPT_HEADER, true)->get($this->mockUrl . '/get-test');
+    $code = $this->curl->getHeader('Server');
+    $this->assertEquals($code, 'Google Frontend');
+  }
+
 }
