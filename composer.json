@@ -1,8 +1,8 @@
 {
     "name": "hackerone/curl",
-    "description": "Curl Wrapper for Yii framework",
-    "keywords": ["yii curl", "curl", "http request", "get", "post", "put"],
-    "type": "yii-extension",
+    "description": "Curl Wrapper for PHP",
+    "keywords": ["yii curl", "curl", "http request", "get", "post", "put", "symfony", "delete", "header", "post file"],
+    "type": "curl-wrapper",
     "require" : {
         "php": ">=5.3.0"
         },
