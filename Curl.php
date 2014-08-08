@@ -1,6 +1,6 @@
 <?php
 /**
- * Curl wrapper for Yii
+ * Curl wrapper PHP v2
  * @author hackerone
  */
 class Curl
@@ -15,7 +15,7 @@ class Curl
     public $request_options = array();
 
 
-    private $_header, $_headerMap;
+    private $_header, $_headerMap, $_error, $_status, $_info;
 
     // default config
     private $_config = array(
@@ -52,7 +52,7 @@ class Curl
 
     public function resetOptions()
     {
-        $this->request_options = [];
+        $this->request_options = array();
         return $this;
     }
 
@@ -76,7 +76,7 @@ class Curl
         return $this;
     }
 
-    public function buildUrl($url, $data = [])
+    public function buildUrl($url, $data = array())
     {
         $parsed = parse_url($url);
         
@@ -95,11 +95,23 @@ class Curl
 
     public function exec($url, $options, $debug = false)
     {
+        $this->_error = null;
+        $this->_header = null;
+        $this->_headerMap = null;
+        $this->_info = null;
+        $this->_status = null;
+
         $ch = curl_init($url);
         curl_setopt_array($ch, $options);
         $output = curl_exec($ch);
 
-        if($debug)
+        $this->_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if(!$output){
+            $this->_error = curl_error($ch);
+            $this->_info = curl_getinfo($ch);
+        }
+        else if($debug)
             $this->_info = curl_getinfo($ch);
 
         if(@$options[CURLOPT_HEADER] == true){
@@ -116,14 +128,14 @@ class Curl
         return array(substr($response, 0, $header_size), substr($response, $header_size));
     }
 
-    public function get($url, $params = [], $debug = false)
+    public function get($url, $params = array(), $debug = false)
     {
         $exec_url = $this->buildUrl($url, $params);
         $options = $this->getOptions();
         return $this->exec($exec_url,  $options, $debug = false);
     }
 
-    public function post($url, $data, $params = [], $debug = false)
+    public function post($url, $data, $params = array(), $debug = false)
     {
         $url = $this->buildUrl($url, $params);
 
@@ -135,7 +147,7 @@ class Curl
         return $this->exec($url, $options, $debug);
     }
 
-    public function put($url, $data = null, $params = [], $debug = false)
+    public function put($url, $data = null, $params = array(), $debug = false)
     {
         $url = $this->buildUrl($url, $params);
         
@@ -151,7 +163,7 @@ class Curl
         return $this->exec($url, $options, $debug);
     }
 
-    public function delete($url, $params = [], $debug = false)
+    public function delete($url, $params = array(), $debug = false)
     {
         $url = $this->buildUrl($url, $params);
         
@@ -167,12 +179,12 @@ class Curl
     public function getHeaders()
     {
         if(!$this->_header)
-            return [];
+            return array();
 
         if(!$this->_headerMap){
 
             $headers = explode("\r\n", trim($this->_header));
-            $output = [];
+            $output = array();
             $output['http_status'] = array_shift($headers);
 
             foreach($headers as $line){
@@ -199,5 +211,43 @@ class Curl
         return @$headers[$key];
     }
 
+    public function setHeaders($header = array())
+    {
+        if ($this->_isAssoc($header)) {
+            $out = array();
+            foreach ($header as $k => $v) {
+                $out[] = $k .': '.$v;
+            }
+            $header = $out;
+        }
+
+        $this->setOption(CURLOPT_HTTPHEADER, $header);
+        return $this;
+    }
+
+    private function _isAssoc($arr)
+    {
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
+    public function getError()
+    {
+        return $this->_error;
+    }
+
+    public function getInfo()
+    {
+        return $this->_info;
+    }
+
+    public function getStatus()
+    {
+        return $this->_status;
+    }
+
+    public function init()
+    {
+        return;
+    }
 
 }

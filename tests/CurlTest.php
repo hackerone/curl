@@ -147,4 +147,11 @@ class CurlTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($code, 'Google Frontend');
   }
 
+  public function testGetStatus()
+  {
+    $result = $this->curl->setOption(CURLOPT_HEADER, true)->get($this->mockUrl . '/get-test');
+    $code = $this->curl->getStatus();
+    $this->assertEquals($code, 200);
+  }
+
 }

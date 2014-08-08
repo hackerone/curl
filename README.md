@@ -1,4 +1,10 @@
-# Curl Wrapper for Yii framework
+# Curl Wrapper for ~~Yii framework~~ PHP
+
+## Beta Update
+* This can now be used for non-Yii applications as well. (still works as a component if you're using Yii)
+* Lazy initialization of curl.
+* @getHeader($key)
+
 
 ## Requirements
 * PHP 5.3+
