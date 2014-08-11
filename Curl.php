@@ -1,4 +1,7 @@
 <?php
+
+namespace Hackerone\Curl;
+
 /**
  * Curl wrapper PHP v2
  * @author hackerone
