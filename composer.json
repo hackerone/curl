@@ -5,9 +5,9 @@
     "type": "curl-wrapper",
     "version": "1.1",
     "autoload": {
-        "classmap": {
+        "classmap": [
             "./Curl.php"
-        }
+        ]
     },
     "require" : {
         "php": ">=5.3.0"
