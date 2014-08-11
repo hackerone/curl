@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Curl wrapper PHP v2
  * @author hackerone
@@ -205,6 +204,16 @@ class Curl
         return $this->_headerMap;
     }
 
+    public function addHeader($header = [])
+    {
+        $h = $this->request_options[CURLOPT_HTTPHEADER] ? $this->request_options[CURLOPT_HTTPHEADER] : [];
+        foreach($header as $key => $val){
+            $h[] = 
+        }
+
+        $this->request_options[CURLOPT_HTTPHEADER] = $h;
+    }
+
     public function getHeader($key)
     {
         $headers = array_change_key_case($this->getHeaders(), CASE_LOWER);
@@ -213,7 +222,7 @@ class Curl
         return @$headers[$key];
     }
 
-    public function setHeaders($header = array())
+    public function setHeaders($header = array(), $default = false)
     {
         if ($this->_isAssoc($header)) {
             $out = array();
@@ -223,7 +232,7 @@ class Curl
             $header = $out;
         }
 
-        $this->setOption(CURLOPT_HTTPHEADER, $header);
+        $this->setOption(CURLOPT_HTTPHEADER, $header, $default);
         return $this;
     }
 
