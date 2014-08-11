@@ -154,4 +154,13 @@ class CurlTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($code, 200);
   }
 
+  public function testAddHeader()
+  {
+    $this->curl->setHeaders(['first_header' => 'first']);
+    $this->curl->addHeader(['second_header' => 'added']);
+    $options = $this->curl->getOptions();
+    $header = $options[CURLOPT_HTTPHEADER];
+    $this->assertEquals(2, count($header));
+  }
+
 }

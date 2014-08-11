@@ -199,19 +199,18 @@ class Curl
 
             $this->_headerMap = $output;
         }
-
-
         return $this->_headerMap;
     }
 
-    public function addHeader($header = [])
+    public function addHeader($header = array())
     {
         $h = $this->request_options[CURLOPT_HTTPHEADER] ? $this->request_options[CURLOPT_HTTPHEADER] : [];
-        foreach($header as $key => $val){
-            $h[] = 
+        foreach($header as $k => $v){
+            $h[] = $k.': '.$v;
         }
 
         $this->request_options[CURLOPT_HTTPHEADER] = $h;
+        return $this;
     }
 
     public function getHeader($key)
