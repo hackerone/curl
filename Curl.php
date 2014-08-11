@@ -1,6 +1,6 @@
 <?php
 
-namespace Hackerone\Curl;
+namespace Curl;
 
 /**
  * Curl wrapper PHP v2
