@@ -204,7 +204,7 @@ class Curl
 
     public function addHeader($header = array())
     {
-        $h = $this->request_options[CURLOPT_HTTPHEADER] ? $this->request_options[CURLOPT_HTTPHEADER] : [];
+        $h = isset($this->request_options[CURLOPT_HTTPHEADER]) ? $this->request_options[CURLOPT_HTTPHEADER] : [];
         foreach($header as $k => $v){
             $h[] = $k.': '.$v;
         }
