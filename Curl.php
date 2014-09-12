@@ -6,8 +6,6 @@
  */
 class Curl
 {
-    private $_ch;
-    private $response;
 
     // Default options from config.php
     public $options = array();
@@ -133,7 +131,7 @@ class Curl
     {
         $exec_url = $this->buildUrl($url, $params);
         $options = $this->getOptions();
-        return $this->exec($exec_url,  $options, $debug = false);
+        return $this->exec($exec_url,  $options, $debug);
     }
 
     public function post($url, $data, $params = array(), $debug = false)
