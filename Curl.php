@@ -31,9 +31,30 @@ class Curl
         CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
     );
 
+    public static function mergeArray()
+    {
+        $args=func_get_args();
+        $res=array_shift($args);
+        while(!empty($args))
+        {
+            $next=array_shift($args);
+            foreach($next as $k => $v)
+            {
+                if(is_array($v) && isset($res[$k]) && is_array($res[$k]))
+                    $res[$k]=self::mergeArray($res[$k],$v);
+                elseif(is_numeric($k))
+                    isset($res[$k]) ? $res[]=$v : $res[$k]=$v;
+                else
+                    $res[$k]=$v;
+            }
+        }
+        return $res;
+    }
+
     public function getOptions()
     {
-        return $this->request_options + $this->options + $this->_config;
+        $options = self::mergeArray($this->request_options, $this->options, $this->_config);
+        return $options;
     }
 
     public function setOption($key, $value, $default = false)
@@ -104,6 +125,7 @@ class Curl
 
         $ch = curl_init($url);
         curl_setopt_array($ch, $options);
+
         $output = curl_exec($ch);
 
         $this->_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -140,10 +162,9 @@ class Curl
     {
         $url = $this->buildUrl($url, $params);
 
-        $options =  $this->getOptions();
+        $options = $this->getOptions();
         $options[CURLOPT_POST] = true;
         $options[CURLOPT_POSTFIELDS] = $data;
-
 
         return $this->exec($url, $options, $debug);
     }
@@ -209,7 +230,7 @@ class Curl
             $h[] = $k.': '.$v;
         }
 
-        $this->request_options[CURLOPT_HTTPHEADER] = $h;
+        $this->setHeaders($h);
         return $this;
     }
 
