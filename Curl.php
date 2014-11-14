@@ -183,6 +183,17 @@ class Curl
         return $this->exec($url, $options, $debug);
     }
 
+    public function patch($url, $data = array(), $params = array(), $debug = false)
+    {
+        $url = $this->buildUrl($url, $params);
+        
+        $options = $this->getOptions();
+        $options[CURLOPT_CUSTOMREQUEST] = 'PATCH';
+        $options[CURLOPT_POSTFIELDS] = $data;
+
+        return $this->exec($url, $options, $debug);
+    }
+
     public function delete($url, $params = array(), $debug = false)
     {
         $url = $this->buildUrl($url, $params);

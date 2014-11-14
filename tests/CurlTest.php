@@ -122,6 +122,12 @@ class CurlTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($result, 'put-success');
   }
 
+  public function testPatch()
+  {
+    $result = $this->curl->patch($this->mockUrl.'/patch-test', ['data'=> 'patch']);
+    $this->assertEquals($result, 'patch-success');
+  }
+
 
   public function testDelete()
   {

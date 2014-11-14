@@ -52,6 +52,14 @@
 
 ```
 
+* to PATCH data
+
+```php
+	$output = Yii::app()->curl->patch($url, $data);
+	// $data - data that will be PATCHed
+
+```
+
 * to DELETE 
 
 ```php
